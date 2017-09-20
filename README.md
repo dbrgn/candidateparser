@@ -1,5 +1,7 @@
 # candidateparser
 
+[![CircleCI](https://circleci.com/gh/dbrgn/candidateparser/tree/master.svg?style=shield)](https://circleci.com/gh/dbrgn/candidateparser/tree/master)
+
 This is a parser for the [ICE](https://tools.ietf.org/html/rfc5245) Candidate
 SDP, which is used for connectivity establishment and NAT traversal in
 communication systems like [WebRTC](https://webrtc.org/).
