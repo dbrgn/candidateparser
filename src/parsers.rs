@@ -2,10 +2,11 @@
 //! 
 //! **Note:** These parsers are not stable and may be changed at any time.
 use std::str;
+use std::net;
 
-use nom::{is_alphanumeric, digit, alpha};
+use nom::{is_alphanumeric, is_hex_digit, digit, alpha, space};
 
-use ::types::Transport;
+use ::types::{Transport, CandidateType, IceCandidate};
 
 
 /// Return whether the specified byte is a valid ice-char.
@@ -17,6 +18,12 @@ use ::types::Transport;
 /// ```
 fn is_ice_char(c: u8) -> bool {
     is_alphanumeric(c) || c == b'+' || c == b'/'
+}
+
+/// Return whether the specified byte is a valid IP char.
+/// ```
+fn is_ip_char(c: u8) -> bool {
+    is_hex_digit(c) || c == b'.' || c == b':'
 }
 
 named_attr!(#[doc = "
@@ -115,8 +122,149 @@ priority = 1*10DIGIT
     )
 );
 
+named_attr!(#[doc = "
+Parse the cand-type.
+
+RFC5245 grammar:
+
+```ebnf,ignore
+cand-type       = \"typ\" SP candidate-types
+candidate-types = \"host\" / \"srflx\" / \"prflx\" / \"relay\" / token
+```
+"],
+    pub cand_type<CandidateType>,
+    do_parse!(
+        tag!("typ") >>
+        space >>
+        cand_type: map!(
+            map_res!(
+                alpha,
+                str::from_utf8
+            ),
+            |val: &str| match val {
+                "host" => CandidateType::Host,
+                "srflx" => CandidateType::Srflx,
+                "prflx" => CandidateType::Prflx,
+                "relay" => CandidateType::Relay,
+                _ => CandidateType::Token(val.into()),
+            }
+        ) >>
+        (cand_type)
+    )
+);
+
+
+named_attr!(#[doc = "
+Parse an IP address.
+
+The parsing is done using `std::net::IpAddr`.
+"],
+    pub ip_addr<net::IpAddr>,
+    map_res!(
+        map_res!(
+            take_while1!(is_ip_char),
+            str::from_utf8
+        ),
+        str::FromStr::from_str
+    )
+);
+
+named_attr!(#[doc = "
+Parse a port number.
+"],
+    pub port<u16>,
+    map_res!(
+        map_res!(
+            digit,
+            str::from_utf8
+        ),
+        str::FromStr::from_str
+    )
+);
+
+named_attr!(#[doc = "
+Parse the rel-addr.
+
+RFC5245 grammar:
+
+```ebnf,ignore
+rel-addr = \"raddr\" SP connection-address
+```
+"],
+    pub rel_addr<net::IpAddr>,
+    do_parse!(
+        tag!("raddr") >>
+        space >>
+        ip: ip_addr >>
+        (ip)
+    )
+);
+
+named_attr!(#[doc = "
+Parse the rel-port.
+
+RFC5245 grammar:
+
+```ebnf,ignore
+rel-port = \"rport\" SP port
+```
+"],
+    pub rel_port<u16>,
+    do_parse!(
+        tag!("rport") >>
+        space >>
+        p: port >>
+        (p)
+    )
+);
+
+named_attr!(#[doc = "
+Parse the entire ICE candidate.
+
+RFC5245 grammar:
+
+```ebnf,ignore
+candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
+                      transport SP
+                      priority SP
+                      connection-address SP  ;from RFC 4566
+                      port                   ;port from RFC 4566
+                      SP cand-type
+                      [SP rel-addr]
+                      [SP rel-port]
+                      *(SP extension-att-name SP
+                           extension-att-value)
+```
+"],
+    pub ice_candidate<IceCandidate>,
+    do_parse!(
+        tag!("candidate:") >>
+        foundation: foundation >> space >>
+        component_id: component_id >> space >>
+        transport: transport >> space >>
+        priority: priority >> space >>
+        connection_address: ip_addr >> space >>
+        port: port >> space >>
+        cand_type: cand_type >>
+        (
+            IceCandidate {
+                foundation: foundation.to_string(),
+                component_id: component_id,
+                transport: transport,
+                priority: priority,
+                connection_address: connection_address,
+                port: port,
+                candidate_type: cand_type,
+            }
+        )
+    )
+);
+
+
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
     use nom::{IResult, ErrorKind};
 
     use super::*;
@@ -177,5 +325,69 @@ mod tests {
         assert_eq!(priority(&b"1234567890"[..]), IResult::Done(empty, 1234567890));
 
         assert_eq!(priority(&b"12345678901"[..]), IResult::Error(ErrorKind::Verify));
+    }
+
+    #[test]
+    fn test_cand_type() {
+        let empty = &b""[..];
+
+        assert_eq!(cand_type(&b"typ host"[..]), IResult::Done(empty, CandidateType::Host));
+        assert_eq!(cand_type(&b"typ      srflx"[..]), IResult::Done(empty, CandidateType::Srflx));
+        assert_eq!(cand_type(&b"typ prflx"[..]), IResult::Done(empty, CandidateType::Prflx));
+        assert_eq!(cand_type(&b"typ relay"[..]), IResult::Done(empty, CandidateType::Relay));
+        assert_eq!(cand_type(&b"typ footok"[..]), IResult::Done(empty, CandidateType::Token("footok".into())));
+
+        assert_eq!(cand_type(&b"typhost"[..]), IResult::Error(ErrorKind::Space));
+    }
+
+    #[test]
+    fn test_ip_addr() {
+        let empty = &b""[..];
+
+        assert_eq!(ip_addr(&b"127.0.0.1"[..]), IResult::Done(empty, IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))));
+        assert_eq!(ip_addr(&b"10.20.30.40"[..]), IResult::Done(empty, IpAddr::V4(Ipv4Addr::new(10, 20, 30, 40))));
+        assert_eq!(ip_addr(&b"::1"[..]), IResult::Done(empty, IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1))));
+
+        assert_eq!(ip_addr(&b"127001"[..]), IResult::Error(ErrorKind::MapRes));
+        assert_eq!(ip_addr(&b"127.0.01"[..]), IResult::Error(ErrorKind::MapRes));
+        assert_eq!(ip_addr(&b"127.0.0.0.1"[..]), IResult::Error(ErrorKind::MapRes));
+    }
+
+    #[test]
+    fn test_rel_addr() {
+        let empty = &b""[..];
+        assert_eq!(rel_addr(&b"raddr 1.2.3.4"[..]), IResult::Done(empty, IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4))));
+        assert_eq!(rel_addr(&b"raddr ::1"[..]), IResult::Done(empty, IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1))));
+    }
+
+    #[test]
+    fn test_port() {
+        let empty = &b""[..];
+
+        assert_eq!(port(&b"1"[..]), IResult::Done(empty, 1u16));
+        assert_eq!(port(&b"32000"[..]), IResult::Done(empty, 32000u16));
+        assert_eq!(port(&b"65535"[..]), IResult::Done(empty, 65535u16));
+
+        assert_eq!(port(&b"65536"[..]), IResult::Error(ErrorKind::MapRes));
+        assert_eq!(port(&b"655361"[..]), IResult::Error(ErrorKind::MapRes));
+    }
+
+    #[test]
+    fn test_rel_port() {
+        let empty = &b""[..];
+        assert_eq!(rel_port(&b"rport 32000"[..]), IResult::Done(empty, 32000u16));
+    }
+
+    #[test]
+    fn test_parse_minimal() {
+        let candidate = b"candidate:373990095 1 udp 41885439 5.148.189.205 63293 typ relay";
+        let parsed = ice_candidate(&candidate[..]).to_result().unwrap();
+        assert_eq!(parsed.foundation, "373990095".to_string());
+        assert_eq!(parsed.component_id, 1);
+        assert_eq!(parsed.transport, Transport::Udp);
+        assert_eq!(parsed.priority, 41885439);
+        assert_eq!(parsed.connection_address, IpAddr::V4(Ipv4Addr::new(5, 148, 189, 205)));
+        assert_eq!(parsed.port, 63293);
+        assert_eq!(parsed.candidate_type, CandidateType::Relay);
     }
 }
