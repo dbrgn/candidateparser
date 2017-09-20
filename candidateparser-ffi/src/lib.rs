@@ -90,3 +90,39 @@ pub extern "C" fn free_ice_candidate(ptr: *const IceCandidateFFI) {
     }
     // Resources will be freed here
 }
+
+
+#[cfg(test)]
+mod tests {
+
+    use std::ffi::CString;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_ice_candidate_sdp() {
+        // Same data as test_parse_full in the `candidateparser` crate.
+        let sdp = CString::new("candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 46154 generation 0 ufrag EEtu network-id 3 network-cost 10").unwrap();
+
+        // Parse
+        let parsed: *const IceCandidateFFI = parse_ice_candidate_sdp(sdp.into_raw());
+
+        // Restore
+        let candidate: Box<IceCandidateFFI> = unsafe { Box::from_raw(parsed as *mut IceCandidateFFI) };
+
+        let foundation = unsafe { CString::from_raw(candidate.foundation as *mut c_char) };
+        let transport = unsafe { CString::from_raw(candidate.transport as *mut c_char) };
+        let connection_address = unsafe { CString::from_raw(candidate.connection_address as *mut c_char) };
+        let candidate_type = unsafe { CString::from_raw(candidate.candidate_type as *mut c_char) };
+        let rel_addr = unsafe { CString::from_raw(candidate.rel_addr as *mut c_char) };
+        assert_eq!(foundation, CString::new("842163049").unwrap());
+        assert_eq!(candidate.component_id, 1);
+        assert_eq!(transport, CString::new("udp").unwrap());
+        assert_eq!(candidate.priority, 1686052607);
+        assert_eq!(connection_address, CString::new("1.2.3.4").unwrap());
+        assert_eq!(candidate.port, 46154);
+        assert_eq!(candidate_type, CString::new("srflx").unwrap());
+        assert_eq!(rel_addr, CString::new("10.0.0.17").unwrap());
+        assert_eq!(candidate.rel_port, 46154);
+    }
+}
