@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::net::IpAddr;
 
 #[derive(Debug)]
@@ -11,6 +12,7 @@ pub struct IceCandidate {
     pub candidate_type: CandidateType,
     pub rel_addr: Option<IpAddr>,
     pub rel_port: Option<u16>,
+    pub extensions: Option<HashMap<Vec<u8>, Vec<u8>>>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

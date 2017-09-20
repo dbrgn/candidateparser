@@ -1,6 +1,7 @@
 //! Parsers for parsing the ICE candidates.
 //! 
 //! **Note:** These parsers are not stable and may be changed at any time.
+use std::collections::HashMap;
 use std::str;
 use std::net;
 
@@ -219,6 +220,33 @@ rel-port = \"rport\" SP port
 );
 
 named_attr!(#[doc = "
+Parse an extension pair into a tuple.
+
+RFC5245 grammar:
+
+```ebnf,ignore
+extension           = SP extension-att-name SP extension-att-value
+extension-att-name  = byte-string  ;from RFC 4566
+extension-att-value = byte-string
+```
+
+Note that this grammar is ambiguous, since the values are delimited by space
+but byte-string includes space. This was already reported here
+https://www.ietf.org/mail-archive/web/mmusic/current/msg06923.html but with no
+reaction. For this parsing step, I'll simply assume that space is not a valid
+byte-string character.
+"],
+    pub extension<(&[u8], &[u8])>,
+    do_parse!(
+        space >>
+        key: take_till1!(|v: u8| v == 0x00 || v == 0x0a || v == 0x0d || v == 0x20) >>
+        space >>
+        val: take_till1!(|v: u8| v == 0x00 || v == 0x0a || v == 0x0d || v == 0x20) >>
+        (key, val)
+    )
+);
+
+named_attr!(#[doc = "
 Parse the entire ICE candidate.
 
 RFC5245 grammar:
@@ -264,6 +292,19 @@ candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
                 )
             )
         ) >>
+        extensions: map!(
+            many0!(extension),
+            |extensions: Vec<(&[u8], &[u8])>| {
+                if extensions.len() == 0 {
+                    return None;
+                }
+                let mut extension_map = HashMap::new();
+                for (k, v) in extensions {
+                    extension_map.insert(k.to_vec(), v.to_vec());
+                };
+                Some(extension_map)
+            }
+        ) >>
         (
             IceCandidate {
                 foundation: foundation.to_string(),
@@ -275,6 +316,7 @@ candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
                 candidate_type: cand_type,
                 rel_addr: rel_addr,
                 rel_port: rel_port,
+                extensions: extensions,
             }
         )
     )
@@ -396,6 +438,13 @@ mod tests {
     fn test_rel_port() {
         let empty = &b""[..];
         assert_eq!(rel_port(&b"rport 32000"[..]), IResult::Done(empty, 32000u16));
+        assert_eq!(rel_port(&b"rport 32000 foo"[..]), IResult::Done(&b" foo"[..], 32000u16));
+    }
+
+    #[test]
+    fn test_extension() {
+        let empty = &b""[..];
+        assert_eq!(extension(&b" foo bar"[..]), IResult::Done(empty, (&b"foo"[..], &b"bar"[..])));
     }
 
     #[test]
@@ -411,6 +460,7 @@ mod tests {
         assert_eq!(parsed.candidate_type, CandidateType::Relay);
         assert_eq!(parsed.rel_addr, None);
         assert_eq!(parsed.rel_port, None);
+        assert!(parsed.extensions.is_none());
     }
 
     #[test]
@@ -429,5 +479,27 @@ mod tests {
         let parsed3 = ice_candidate(&candidate3[..]).to_result().unwrap();
         assert_eq!(parsed3.rel_addr, None);
         assert_eq!(parsed3.rel_port, Some(1337));
+    }
+
+    #[test]
+    fn test_parse_full() {
+        let candidate = b"candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 46154 generation 0 ufrag EEtu network-id 3 network-cost 10";
+        let parsed = ice_candidate(&candidate[..]).to_result().unwrap();
+        assert_eq!(parsed.foundation, "842163049".to_string());
+        assert_eq!(parsed.component_id, 1);
+        assert_eq!(parsed.transport, Transport::Udp);
+        assert_eq!(parsed.priority, 1686052607);
+        assert_eq!(parsed.connection_address, IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)));
+        assert_eq!(parsed.port, 46154);
+        assert_eq!(parsed.candidate_type, CandidateType::Srflx);
+        assert_eq!(parsed.rel_addr, Some(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 17))));
+        assert_eq!(parsed.rel_port, Some(46154));
+        assert!(parsed.extensions.is_some());
+        let extensions = parsed.extensions.unwrap();
+        assert_eq!(extensions.len(), 4);
+        assert_eq!(extensions.get(&b"generation".to_vec()), Some(&b"0".to_vec()));
+        assert_eq!(extensions.get(&b"ufrag".to_vec()), Some(&b"EEtu".to_vec()));
+        assert_eq!(extensions.get(&b"network-id".to_vec()), Some(&b"3".to_vec()));
+        assert_eq!(extensions.get(&b"network-cost".to_vec()), Some(&b"10".to_vec()));
     }
 }
