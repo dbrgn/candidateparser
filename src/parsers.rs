@@ -1,4 +1,4 @@
-//! Parsers for parsing the ICE candidates.
+//! Nom parsers for parsing the ICE candidates.
 //! 
 //! **Note:** These parsers are not stable and may be changed at any time.
 use std::collections::HashMap;
@@ -479,27 +479,5 @@ mod tests {
         let parsed3 = ice_candidate(&candidate3[..]).to_result().unwrap();
         assert_eq!(parsed3.rel_addr, None);
         assert_eq!(parsed3.rel_port, Some(1337));
-    }
-
-    #[test]
-    fn test_parse_full() {
-        let candidate = b"candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 46154 generation 0 ufrag EEtu network-id 3 network-cost 10";
-        let parsed = ice_candidate(&candidate[..]).to_result().unwrap();
-        assert_eq!(parsed.foundation, "842163049".to_string());
-        assert_eq!(parsed.component_id, 1);
-        assert_eq!(parsed.transport, Transport::Udp);
-        assert_eq!(parsed.priority, 1686052607);
-        assert_eq!(parsed.connection_address, IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)));
-        assert_eq!(parsed.port, 46154);
-        assert_eq!(parsed.candidate_type, CandidateType::Srflx);
-        assert_eq!(parsed.rel_addr, Some(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 17))));
-        assert_eq!(parsed.rel_port, Some(46154));
-        assert!(parsed.extensions.is_some());
-        let extensions = parsed.extensions.unwrap();
-        assert_eq!(extensions.len(), 4);
-        assert_eq!(extensions.get(&b"generation".to_vec()), Some(&b"0".to_vec()));
-        assert_eq!(extensions.get(&b"ufrag".to_vec()), Some(&b"EEtu".to_vec()));
-        assert_eq!(extensions.get(&b"network-id".to_vec()), Some(&b"3".to_vec()));
-        assert_eq!(extensions.get(&b"network-cost".to_vec()), Some(&b"10".to_vec()));
     }
 }
