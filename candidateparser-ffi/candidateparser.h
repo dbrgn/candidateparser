@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// A wrapper around the IceCandidate type that is C compatible.
 typedef struct {
   const char *foundation;
   uint32_t component_id;
@@ -20,10 +21,14 @@ typedef struct {
   const char *connection_address;
   uint16_t port;
   const char *candidate_type;
+  // The address is optional. If no value is defined, this will contain a
+  // null pointer.
   const char *rel_addr;
+  // This port is optional. If no address is defined, this will contain the
+  // value `0`.
   uint16_t rel_port;
 } IceCandidateFFI;
 
-const IceCandidateFFI *parse(const char *sdp);
+const IceCandidateFFI *parse_ice_candidate_sdp(const char *sdp);
 
 #endif // candidateparser_bindings_h

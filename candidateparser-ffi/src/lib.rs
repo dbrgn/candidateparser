@@ -1,3 +1,4 @@
+//! C FFI bindings for candidateparser library.
 extern crate candidateparser;
 extern crate libc;
 
@@ -6,6 +7,7 @@ use std::boxed::Box;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
+/// A wrapper around the IceCandidate type that is C compatible.
 #[repr(C)]
 pub struct IceCandidateFFI {
     pub foundation: *const c_char,
@@ -15,13 +17,17 @@ pub struct IceCandidateFFI {
     pub connection_address: *const c_char,
     pub port: u16,
     pub candidate_type: *const c_char,
-    pub rel_addr: *const c_char, // Nullable (nullptr)
+    /// The address is optional. If no value is defined, this will contain a
+    /// null pointer.
+    pub rel_addr: *const c_char,
+    /// This port is optional. If no address is defined, this will contain the
+    /// value `0`.
     pub rel_port: u16, // Nullable (0)
     //pub extensions: [*const c_char], // Nullable (nullptr) // TODO
 }
 
 #[no_mangle]
-pub extern "C" fn parse(sdp: *const c_char) -> *const IceCandidateFFI {
+pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandidateFFI {
     // Convert C string to Rust byte slice
     let cstr_sdp = unsafe {
         assert!(!sdp.is_null());
