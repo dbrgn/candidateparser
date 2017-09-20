@@ -31,6 +31,9 @@ int main() {
     printf("  Type:          %s\n", candidate->candidate_type);
     printf("  Rel Addr:      %s\n", candidate->rel_addr);
     printf("  Rel Port:      %hu\n", candidate->rel_port);
-    printf("\nBrought to you by the powers of Rust!\n");
+
+    printf("\nCleaning up memory resources... ");
+    free_ice_candidate(candidate);
+    printf("\n\nBrought to you by the powers of Rust!\n");
     return 0;
 }

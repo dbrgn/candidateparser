@@ -1,4 +1,4 @@
-header = "/**\n * C bindings for candidateparser library.\n * (c) 2017 Danilo Bargen\n **/"
+header = "/**\n * C bindings for candidateparser library.\n * https://github.com/dbrgn/candidateparser\n **/"
 include_guard = "candidateparser_bindings_h"
 language = "C"
 braces = "SameLine"

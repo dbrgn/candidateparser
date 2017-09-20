@@ -1,6 +1,6 @@
 /**
  * C bindings for candidateparser library.
- * (c) 2017 Danilo Bargen
+ * https://github.com/dbrgn/candidateparser
  **/
 
 #ifndef candidateparser_bindings_h
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// A wrapper around the IceCandidate type that is C compatible.
+// A wrapper around the `IceCandidate` data that is C compatible.
 typedef struct {
   const char *foundation;
   uint32_t component_id;
@@ -29,6 +29,17 @@ typedef struct {
   uint16_t rel_port;
 } IceCandidateFFI;
 
+// Free the memory associated with the [`IceCandidateFFI`](struct.IceCandidateFFI.html) struct.
+// 
+// Make sure to always call this function after you're done processing the
+// data, otherwise you'll end up with memory leaks!
+void free_ice_candidate(const IceCandidateFFI *ptr);
+
+// Parse an ICE candidate SDP string and return a pointer to an
+// [`IceCandidateFFI`](struct.IceCandidateFFI.html) struct.
+// 
+// Make sure to always call the [`free_ice_candidate`](fn.free_ice_candidate.html)
+// function after you're done processing the data, to prevent memory leaks!
 const IceCandidateFFI *parse_ice_candidate_sdp(const char *sdp);
 
 #endif // candidateparser_bindings_h
