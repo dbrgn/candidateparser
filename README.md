@@ -2,7 +2,7 @@
 
 This is a parser for the [ICE](https://tools.ietf.org/html/rfc5245) Candidate
 SDP, which is used for connectivity establishment and NAT traversal in
-communication systems like WebRTC.
+communication systems like [WebRTC](https://webrtc.org/).
 
 Example candidate SDP:
 
@@ -30,6 +30,8 @@ will result in the following object:
     }
 
 For more information, see [RFC5245 (Interactive Connectivity Establishment (ICE))](https://tools.ietf.org/html/rfc5245).
+
+Note: Due to build system issues, Rust 1.21+ is required (currently in Beta).
 
 
 ## FFI

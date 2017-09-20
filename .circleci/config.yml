@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: rust:1.20
+      - image: mackeyja92/rustup:beta  # TODO: Switch back to rust:1.21 as soon as it's released!
     steps:
       - checkout
 
@@ -20,7 +20,8 @@ jobs:
       - run: cd candidateparser-ffi && cc example.c -o example -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
 
       # Run cargo-audit
-      - run: cargo install --force cargo-audit && cargo audit
+      # TODO: Re-enable once we switch back to official rust image
+      #- run: cargo install --force cargo-audit && cargo audit
 
       # Save cache
       - save_cache:
