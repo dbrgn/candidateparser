@@ -1,4 +1,6 @@
+use std::convert::Into;
 use std::collections::HashMap;
+use std::ffi::CString;
 use std::net::IpAddr;
 
 /// The ICE candidate struct. Contains all data from the SDP.
@@ -23,6 +25,15 @@ pub enum Transport {
     Extension(String)
 }
 
+impl Into<CString> for Transport {
+    fn into(self) -> CString {
+        match self {
+            Transport::Udp => CString::new("udp").unwrap(),
+            Transport::Extension(e) => CString::new(e).unwrap(),
+        }
+    }
+}
+
 /// All possible candidate types.
 #[derive(Debug, PartialEq, Eq)]
 pub enum CandidateType {
@@ -31,4 +42,45 @@ pub enum CandidateType {
     Prflx,
     Relay,
     Token(String),
+}
+
+impl Into<CString> for CandidateType {
+    fn into(self) -> CString {
+        match self {
+            CandidateType::Host => CString::new("host").unwrap(),
+            CandidateType::Srflx => CString::new("srflx").unwrap(),
+            CandidateType::Prflx => CString::new("prflx").unwrap(),
+            CandidateType::Relay => CString::new("relay").unwrap(),
+            CandidateType::Token(e) => CString::new(e).unwrap(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_transport_into_cstring() {
+        let converted1: CString = Transport::Udp.into();
+        assert_eq!(converted1, CString::new("udp").unwrap());
+
+        let converted2: CString = Transport::Extension("yolo".into()).into();
+        assert_eq!(converted2, CString::new("yolo").unwrap());
+    }
+
+    #[test]
+    fn test_candidate_type_into_cstring() {
+        let host: CString = CandidateType::Host.into();
+        let srflx: CString = CandidateType::Srflx.into();
+        let prflx: CString = CandidateType::Prflx.into();
+        let relay: CString = CandidateType::Relay.into();
+        let token: CString = CandidateType::Token("Yolo".into()).into();
+
+        assert_eq!(host, CString::new("host").unwrap());
+        assert_eq!(srflx, CString::new("srflx").unwrap());
+        assert_eq!(prflx, CString::new("prflx").unwrap());
+        assert_eq!(relay, CString::new("relay").unwrap());
+        assert_eq!(token, CString::new("Yolo").unwrap());
+    }
 }

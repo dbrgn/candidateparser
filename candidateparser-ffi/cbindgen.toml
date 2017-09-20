@@ -1,0 +1,10 @@
+header = "/**\n * C bindings for candidateparser library.\n * (c) 2017 Danilo Bargen\n **/"
+include_guard = "candidateparser_bindings_h"
+language = "C"
+braces = "SameLine"
+
+[parse]
+parse_deps = false
+
+[fn]
+args = "Vertical"

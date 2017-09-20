@@ -2,6 +2,15 @@
 name = "candidateparser-ffi"
 version = "0.1.0"
 authors = ["Danilo Bargen <mail@dbrgn.ch>"]
+build = "build.rs"
+
+[lib]
+name = "candidateparser"
+crate-type = ["cdylib"]
 
 [dependencies]
 candidateparser = "*"
+libc = "^0.2"
+
+[build-dependencies]
+cbindgen = "0.1"
