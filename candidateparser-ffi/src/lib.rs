@@ -8,10 +8,32 @@
 extern crate candidateparser;
 extern crate libc;
 
-use libc::c_char;
+use libc::{c_char, size_t, uint8_t};
 use std::boxed::Box;
 use std::ffi::{CStr, CString};
+use std::mem;
 use std::ptr;
+
+/// A key value pair.
+#[derive(Debug)]
+#[repr(C)]
+pub struct KeyValuePair {
+    pub key: *const uint8_t,
+    pub key_len: size_t,
+    pub val: *const uint8_t,
+    pub val_len: size_t,
+}
+
+/// A key value map.
+///
+/// The `len` must be set to the length of the `values` array. Everything else
+/// is undefined behavior!
+#[derive(Debug)]
+#[repr(C)]
+pub struct KeyValueMap {
+    pub values: *const KeyValuePair,
+    pub len: size_t,
+}
 
 /// A wrapper around the `IceCandidate` data that is C compatible.
 #[derive(Debug)]
@@ -29,8 +51,9 @@ pub struct IceCandidateFFI {
     pub rel_addr: *const c_char,
     /// This port is optional. If no address is defined, this will contain the
     /// value `0`.
-    pub rel_port: u16, // Nullable (0)
-    //pub extensions: [*const c_char], // Nullable (nullptr) // TODO
+    pub rel_port: u16,
+    /// The extensions map will always be defined but may be empty.
+    pub extensions: KeyValueMap,
 }
 
 /// Parse an ICE candidate SDP string and return a pointer to an
@@ -55,6 +78,47 @@ pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandi
     // Convert to FFI representation
     let transport_cstring: CString = parsed.transport.into();
     let candidate_type_cstring: CString = parsed.candidate_type.into();
+    let extensions = match parsed.extensions {
+        Some(e) => {
+            // Create KeyValuePairs from map entries
+            let mut extensions_vec = e.iter().map(|(k, v)| {
+                let mut k_vec = k.clone();
+                k_vec.shrink_to_fit();
+                assert!(k_vec.len() == k_vec.capacity());
+                let mut v_vec = v.clone();
+                v_vec.shrink_to_fit();
+                assert!(v_vec.len() == v_vec.capacity());
+                let pair = KeyValuePair {
+                    key: k_vec.as_ptr(),
+                    key_len: k_vec.len(),
+                    val: v_vec.as_ptr(),
+                    val_len: v_vec.len(),
+                };
+                mem::forget(k_vec);
+                mem::forget(v_vec);
+                pair
+            }).collect::<Vec<KeyValuePair>>();
+
+            // Shrink vector so that capacity == length
+            extensions_vec.shrink_to_fit();
+            assert!(extensions_vec.len() == extensions_vec.capacity());
+
+            // Create KeyValueMap
+            let map = KeyValueMap {
+                values: extensions_vec.as_ptr(),
+                len: extensions_vec.len(),
+            };
+
+            // Prevent temporary vector from being deallocated
+            mem::forget(extensions_vec);
+
+            map
+        },
+        None => KeyValueMap {
+            values: ptr::null(),
+            len: 0,
+        },
+    };
     let boxed = Box::new(IceCandidateFFI {
         foundation: CString::new(parsed.foundation).unwrap().into_raw(),
         component_id: parsed.component_id,
@@ -68,6 +132,7 @@ pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandi
             None => ptr::null(),
         },
         rel_port: parsed.rel_port.unwrap_or(0),
+        extensions: extensions,
     });
 
     Box::into_raw(boxed)
@@ -87,6 +152,14 @@ pub extern "C" fn free_ice_candidate(ptr: *const IceCandidateFFI) {
     unsafe { CString::from_raw(candidate.candidate_type as *mut c_char) };
     if !candidate.rel_addr.is_null() {
         unsafe { CString::from_raw(candidate.rel_addr as *mut c_char) };
+    }
+    unsafe {
+        let e = candidate.extensions;
+        let pairs = Vec::from_raw_parts(e.values as *mut KeyValuePair, e.len as usize, e.len as usize);
+        for p in pairs {
+            Vec::from_raw_parts(p.key as *mut uint8_t, p.key_len as usize, p.key_len as usize);
+            Vec::from_raw_parts(p.val as *mut uint8_t, p.val_len as usize, p.val_len as usize);
+        }
     }
     // Resources will be freed here
 }
@@ -124,5 +197,6 @@ mod tests {
         assert_eq!(candidate_type, CString::new("srflx").unwrap());
         assert_eq!(rel_addr, CString::new("10.0.0.17").unwrap());
         assert_eq!(candidate.rel_port, 46154);
+        assert_eq!(candidate.extensions.len, 4);
     }
 }

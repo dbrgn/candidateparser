@@ -12,6 +12,23 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// A key value pair.
+typedef struct {
+  const uint8_t *key;
+  size_t key_len;
+  const uint8_t *val;
+  size_t val_len;
+} KeyValuePair;
+
+// A key value map.
+// 
+// The `len` must be set to the length of the `values` array. Everything else
+// is undefined behavior!
+typedef struct {
+  const KeyValuePair *values;
+  size_t len;
+} KeyValueMap;
+
 // A wrapper around the `IceCandidate` data that is C compatible.
 typedef struct {
   const char *foundation;
@@ -27,6 +44,8 @@ typedef struct {
   // This port is optional. If no address is defined, this will contain the
   // value `0`.
   uint16_t rel_port;
+  // The extensions map will always be defined but may be empty.
+  KeyValueMap extensions;
 } IceCandidateFFI;
 
 // Free the memory associated with the [`IceCandidateFFI`](struct.IceCandidateFFI.html) struct.

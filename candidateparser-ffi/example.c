@@ -15,6 +15,26 @@
 
 #include "candidateparser.h"
 
+/**
+ * Print the character if it's printable, print a "?" mark otherwise.
+ */
+static inline void print_byte(uint8_t val) {
+    if (val < 0x20 || val > 0x7e) { // Non printable
+        printf("?");
+    } else { // Printable
+        printf("%c", val);
+    }
+}
+
+/**
+ * Print `len` number of bytes from `values` to stdout.
+ */
+static inline void print_bytes(uint8_t const *values, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        print_byte(values[i]);
+    }
+}
+
 int main() {
     const char *sdp = "candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 1337 generation 0 ufrag EEtu network-id 3 network-cost 10";
 
@@ -31,6 +51,20 @@ int main() {
     printf("  Type:          %s\n", candidate->candidate_type);
     printf("  Rel Addr:      %s\n", candidate->rel_addr);
     printf("  Rel Port:      %hu\n", candidate->rel_port);
+    if (candidate->extensions.len <= 0) {
+        printf("  Extensions:    -\n");
+    } else {
+        printf("  Extensions:\n");
+        for (size_t i = 0; i < candidate->extensions.len; i++) {
+            printf("    - ");
+            print_bytes(candidate->extensions.values[i].key,
+                        candidate->extensions.values[i].key_len);
+            printf(" => ");
+            print_bytes(candidate->extensions.values[i].val,
+                        candidate->extensions.values[i].val_len);
+            printf("\n");
+        }
+    }
 
     printf("\nCleaning up memory resources... ");
     free_ice_candidate(candidate);
