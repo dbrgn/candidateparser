@@ -1,0 +1,35 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: rust:1.20
+    steps:
+      - checkout
+
+      # Load cargo target from cache if possible.
+      # Multiple caches are used to increase the chance of a cache hit.
+      - restore_cache:
+          keys:
+            - v4-cargo-cache-{{ .Branch }}
+            - v4-cargo-cache
+
+      # Run tests
+      - run: cargo build && cargo test
+
+      # Ensure that example compiles
+      - run: cd candidateparser-ffi && cc example.c -o example -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
+
+      # Run cargo-audit
+      - run: cargo install --force cargo-audit && cargo audit
+
+      # Save cache
+      - save_cache:
+          key: v4-cargo-cache-{{ .Branch }}
+          paths:
+            - target
+            - /usr/local/cargo
+      - save_cache:
+          key: v4-cargo-cache
+          paths:
+            - target
+            - /usr/local/cargo
