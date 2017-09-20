@@ -69,6 +69,7 @@ mod tests {
     fn test_parse_full() {
         let candidate = b"candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 46154 generation 0 ufrag EEtu network-id 3 network-cost 10";
         let parsed: IceCandidate = parse(&candidate[..]).unwrap();
+        println!("{:?}", parsed);
         assert_eq!(parsed.foundation, "842163049".to_string());
         assert_eq!(parsed.component_id, 1);
         assert_eq!(parsed.transport, Transport::Udp);
