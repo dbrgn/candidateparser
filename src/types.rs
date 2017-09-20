@@ -9,6 +9,8 @@ pub struct IceCandidate {
     pub connection_address: IpAddr,
     pub port: u16,
     pub candidate_type: CandidateType,
+    pub rel_addr: Option<IpAddr>,
+    pub rel_port: Option<u16>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

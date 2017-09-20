@@ -246,6 +246,24 @@ candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
         connection_address: ip_addr >> space >>
         port: port >> space >>
         cand_type: cand_type >>
+        rel_addr: opt!(
+            complete!( // https://github.com/Geal/nom/issues/406
+                do_parse!(
+                    space >>
+                    addr: rel_addr >>
+                    (addr)
+                )
+            )
+        ) >>
+        rel_port: opt!(
+            complete!(
+                do_parse!(
+                    space >>
+                    port: rel_port >>
+                    (port)
+                )
+            )
+        ) >>
         (
             IceCandidate {
                 foundation: foundation.to_string(),
@@ -255,6 +273,8 @@ candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
                 connection_address: connection_address,
                 port: port,
                 candidate_type: cand_type,
+                rel_addr: rel_addr,
+                rel_port: rel_port,
             }
         )
     )
@@ -389,5 +409,25 @@ mod tests {
         assert_eq!(parsed.connection_address, IpAddr::V4(Ipv4Addr::new(5, 148, 189, 205)));
         assert_eq!(parsed.port, 63293);
         assert_eq!(parsed.candidate_type, CandidateType::Relay);
+        assert_eq!(parsed.rel_addr, None);
+        assert_eq!(parsed.rel_port, None);
+    }
+
+    #[test]
+    fn test_parse_with_rel() {
+        let candidate1 = b"candidate:373990095 1 udp 41885439 5.148.189.205 63293 typ relay raddr 1.2.3.4 rport 5432";
+        let parsed1 = ice_candidate(&candidate1[..]).to_result().unwrap();
+        assert_eq!(parsed1.rel_addr, Some(IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4))));
+        assert_eq!(parsed1.rel_port, Some(5432));
+
+        let candidate2 = b"candidate:373990095 1 udp 41885439 5.148.189.205 63293 typ relay raddr 1.2.3.4";
+        let parsed2 = ice_candidate(&candidate2[..]).to_result().unwrap();
+        assert_eq!(parsed2.rel_addr, Some(IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4))));
+        assert_eq!(parsed2.rel_port, None);
+
+        let candidate3 = b"candidate:373990095 1 udp 41885439 5.148.189.205 63293 typ relay rport 1337";
+        let parsed3 = ice_candidate(&candidate3[..]).to_result().unwrap();
+        assert_eq!(parsed3.rel_addr, None);
+        assert_eq!(parsed3.rel_port, Some(1337));
     }
 }
