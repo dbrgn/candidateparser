@@ -3,11 +3,11 @@
  *
  * Compile like this:
  *
- *   $ clang parse.c -o parse -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
+ *   $ clang example.c -o example -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
  *
  * Run like this:
  *
- *   $ LD_LIBRARY_PATH=../target/debug/ ./parse
+ *   $ LD_LIBRARY_PATH=../target/debug/ ./example
  */
 #include <stdio.h>
 #include <stdint.h>
