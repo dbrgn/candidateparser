@@ -1,4 +1,4 @@
-# ice-candidate-parser
+# candidateparser
 
 This is a parser for the ICE Candidate SDP, for example:
 

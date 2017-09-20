@@ -1,7 +1,5 @@
-[package]
-name = "ice-candidate-parser"
-version = "0.1.0"
-authors = ["Danilo Bargen <mail@dbrgn.ch>"]
+[workspace]
+members = ["candidateparser", "candidateparser-ffi"]
 
-[dependencies]
-nom = { version = "3.2", features = ["nightly"] }
+[patch.crates-io]
+candidateparser = { path = "candidateparser" }

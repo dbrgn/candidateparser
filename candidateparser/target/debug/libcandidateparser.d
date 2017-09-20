@@ -1,0 +1,1 @@
+/mnt/data/Projects/ice-candidate-parser-rs/candidateparser/target/debug/libcandidateparser.rlib: /mnt/data/Projects/ice-candidate-parser-rs/candidateparser/src/parsers.rs /mnt/data/Projects/ice-candidate-parser-rs/candidateparser/src/types.rs /mnt/data/Projects/ice-candidate-parser-rs/candidateparser/src/lib.rs
