@@ -1,7 +1,7 @@
 [package]
 name = "candidateparser"
 description = "A parser for the ICE Candidate SDP according to RFC5245."
-version = "0.1.0"
+version = "0.1.1"
 repository = "https://github.com/dbrgn/candidateparser"
 license = "MIT OR Apache-2.0"
 authors = ["Danilo Bargen <mail@dbrgn.ch>"]
