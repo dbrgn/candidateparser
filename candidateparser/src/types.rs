@@ -4,7 +4,7 @@ use std::ffi::CString;
 use std::net::IpAddr;
 
 /// The ICE candidate struct. Contains all data from the SDP.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct IceCandidate {
     pub foundation: String,
     pub component_id: u32,
@@ -19,7 +19,7 @@ pub struct IceCandidate {
 }
 
 /// The transport type. In almost all cases this will be `Transport::Udp`.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum Transport {
     Udp,
     Extension(String)
@@ -35,7 +35,7 @@ impl Into<CString> for Transport {
 }
 
 /// All possible candidate types.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum CandidateType {
     Host,
     Srflx,
