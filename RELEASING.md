@@ -8,6 +8,11 @@ Set variables:
 Update version numbers:
 
     $ vim candidateparser/Cargo.toml
+    $ cargo update
+
+Run tests:
+
+    $ cargo test
 
 Update changelog:
 

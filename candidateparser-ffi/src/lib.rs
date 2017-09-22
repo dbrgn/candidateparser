@@ -183,7 +183,7 @@ mod tests {
         let sdp = CString::new("candidate:842163049 1 udp 1686052607 1.2.3.4 46154 typ srflx raddr 10.0.0.17 rport 46154 generation 0 ufrag EEtu network-id 3 network-cost 10").unwrap();
 
         // Parse
-        let parsed: *const IceCandidateFFI = parse_ice_candidate_sdp(sdp.into_raw());
+        let parsed: *const IceCandidateFFI = unsafe { parse_ice_candidate_sdp(sdp.into_raw()) };
 
         // Restore
         let candidate: Box<IceCandidateFFI> = unsafe { Box::from_raw(parsed as *mut IceCandidateFFI) };
