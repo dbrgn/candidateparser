@@ -21,3 +21,8 @@ clippy = {version = "0.0.162", optional = true}
 
 [features]
 default = []
+
+[badges]
+circle-ci = { repository = "dbrgn/candidateparser" }
+is-it-maintained-open-issues = { repository = "dbrgn/candidateparser" }
+maintenance = { status = "actively-developed" }
