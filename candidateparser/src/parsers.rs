@@ -235,7 +235,8 @@ but byte-string includes space. This was already reported here
 https://www.ietf.org/mail-archive/web/mmusic/current/msg06923.html but with no
 reaction. For this parsing step, I'll simply assume that space is not a valid
 byte-string character.
-"],
+"]
+#[cfg_attr(feature = "clippy", allow(redundant_closure))],
     pub extension<(&[u8], &[u8])>,
     do_parse!(
         space >>
@@ -295,7 +296,7 @@ candidate-attribute = \"candidate\" \":\" foundation SP component-id SP
         extensions: map!(
             many0!(extension),
             |extensions: Vec<(&[u8], &[u8])>| {
-                if extensions.len() == 0 {
+                if extensions.is_empty() {
                     return None;
                 }
                 let mut extension_map = HashMap::new();

@@ -43,6 +43,16 @@ supports the C calling convention. An example program can be found in
 `candidateparser-ffi/example.c`.
 
 
+## Linting
+
+To run clippy lints, compile the library with `--features clippy` on a nightly compiler:
+
+    $ cargo build --features clippy
+
+Note: Running this command from the workspace root won't work, you have to `cd`
+into the sub-crates!
+
+
 ## License
 
 Licensed under either of

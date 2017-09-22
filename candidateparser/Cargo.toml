@@ -9,3 +9,7 @@ categories = ["parser-implementations", "network-programming"]
 
 [dependencies]
 nom = { version = "3.2" }
+clippy = {version = "*", optional = true}
+
+[features]
+default = []

@@ -52,6 +52,8 @@ typedef struct {
 // 
 // Make sure to always call this function after you're done processing the
 // data, otherwise you'll end up with memory leaks!
+// 
+// This function is marked `unsafe` because it dereferences raw pointers.
 void free_ice_candidate(const IceCandidateFFI *ptr);
 
 // Parse an ICE candidate SDP string and return a pointer to an
@@ -59,6 +61,8 @@ void free_ice_candidate(const IceCandidateFFI *ptr);
 // 
 // Make sure to always call the [`free_ice_candidate`](fn.free_ice_candidate.html)
 // function after you're done processing the data, to prevent memory leaks!
+// 
+// This function is marked `unsafe` because it dereferences raw pointers.
 const IceCandidateFFI *parse_ice_candidate_sdp(const char *sdp);
 
 #endif // candidateparser_bindings_h

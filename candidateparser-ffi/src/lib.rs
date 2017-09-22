@@ -5,6 +5,9 @@
 //!
 //! You can find an example C program under
 //! [`src/example.c`](https://github.com/dbrgn/candidateparser/blob/master/candidateparser-ffi/example.c).
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 extern crate candidateparser;
 extern crate libc;
 
@@ -61,13 +64,15 @@ pub struct IceCandidateFFI {
 ///
 /// Make sure to always call the [`free_ice_candidate`](fn.free_ice_candidate.html)
 /// function after you're done processing the data, to prevent memory leaks!
+///
+/// This function is marked `unsafe` because it dereferences raw pointers.
 #[no_mangle]
-pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandidateFFI {
+pub unsafe extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandidateFFI {
     // Convert C string to Rust byte slice
-    let cstr_sdp = unsafe {
-        assert!(!sdp.is_null());
-        CStr::from_ptr(sdp)
-    };
+    if sdp.is_null() {
+        return ptr::null();
+    }
+    let cstr_sdp = CStr::from_ptr(sdp);
 
     // Parse
     let parsed = match candidateparser::parse(cstr_sdp.to_bytes()) {
@@ -84,10 +89,10 @@ pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandi
             let mut extensions_vec = e.iter().map(|(k, v)| {
                 let mut k_vec = k.clone();
                 k_vec.shrink_to_fit();
-                assert!(k_vec.len() == k_vec.capacity());
+                assert_eq!(k_vec.len(), k_vec.capacity());
                 let mut v_vec = v.clone();
                 v_vec.shrink_to_fit();
-                assert!(v_vec.len() == v_vec.capacity());
+                assert_eq!(v_vec.len(), v_vec.capacity());
                 let pair = KeyValuePair {
                     key: k_vec.as_ptr(),
                     key_len: k_vec.len(),
@@ -101,7 +106,7 @@ pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandi
 
             // Shrink vector so that capacity == length
             extensions_vec.shrink_to_fit();
-            assert!(extensions_vec.len() == extensions_vec.capacity());
+            assert_eq!(extensions_vec.len(), extensions_vec.capacity());
 
             // Create KeyValueMap
             let map = KeyValueMap {
@@ -142,24 +147,24 @@ pub extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const IceCandi
 ///
 /// Make sure to always call this function after you're done processing the
 /// data, otherwise you'll end up with memory leaks!
+///
+/// This function is marked `unsafe` because it dereferences raw pointers.
 #[no_mangle]
-pub extern "C" fn free_ice_candidate(ptr: *const IceCandidateFFI) {
+pub unsafe extern "C" fn free_ice_candidate(ptr: *const IceCandidateFFI) {
     if ptr.is_null() { return; }
-    let candidate: Box<IceCandidateFFI> = unsafe { Box::from_raw(ptr as *mut IceCandidateFFI) };
-    unsafe { CString::from_raw(candidate.foundation as *mut c_char) };
-    unsafe { CString::from_raw(candidate.transport as *mut c_char) };
-    unsafe { CString::from_raw(candidate.connection_address as *mut c_char) };
-    unsafe { CString::from_raw(candidate.candidate_type as *mut c_char) };
+    let candidate: Box<IceCandidateFFI> = Box::from_raw(ptr as *mut IceCandidateFFI);
+    CString::from_raw(candidate.foundation as *mut c_char);
+    CString::from_raw(candidate.transport as *mut c_char);
+    CString::from_raw(candidate.connection_address as *mut c_char);
+    CString::from_raw(candidate.candidate_type as *mut c_char);
     if !candidate.rel_addr.is_null() {
-        unsafe { CString::from_raw(candidate.rel_addr as *mut c_char) };
+        CString::from_raw(candidate.rel_addr as *mut c_char);
     }
-    unsafe {
-        let e = candidate.extensions;
-        let pairs = Vec::from_raw_parts(e.values as *mut KeyValuePair, e.len as usize, e.len as usize);
-        for p in pairs {
-            Vec::from_raw_parts(p.key as *mut uint8_t, p.key_len as usize, p.key_len as usize);
-            Vec::from_raw_parts(p.val as *mut uint8_t, p.val_len as usize, p.val_len as usize);
-        }
+    let e = candidate.extensions;
+    let pairs = Vec::from_raw_parts(e.values as *mut KeyValuePair, e.len as usize, e.len as usize);
+    for p in pairs {
+        Vec::from_raw_parts(p.key as *mut uint8_t, p.key_len as usize, p.key_len as usize);
+        Vec::from_raw_parts(p.val as *mut uint8_t, p.val_len as usize, p.val_len as usize);
     }
     // Resources will be freed here
 }

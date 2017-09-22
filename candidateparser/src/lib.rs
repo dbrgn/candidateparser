@@ -2,6 +2,8 @@
 //!
 //! The main entry point for this library is the [`parse`](fn.parse.html)
 //! function. See the docs of that function for more information.
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 
 #[macro_use]
 extern crate nom;
@@ -45,14 +47,13 @@ pub use types::{IceCandidate, CandidateType, Transport};
 pub fn parse(sdp: &[u8]) -> Option<types::IceCandidate> {
     match parsers::ice_candidate(sdp) {
         Done(i, o) => {
-            if i.len() == 0 {
+            if i.is_empty() {
                 Some(o)
             } else {
                 None
             }
         },
-        Incomplete(_) => None,
-        Error(_) => None,
+        Incomplete(_) | Error(_) => None,
     }
 }
 
