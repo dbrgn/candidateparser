@@ -36,6 +36,8 @@ will result in the following object:
 
 For more information, see [RFC5245 (Interactive Connectivity Establishment (ICE))](https://tools.ietf.org/html/rfc5245).
 
+Crate docs: https://docs.rs/candidateparser/
+
 Note: Due to build system issues, Rust 1.21+ is required (currently in Beta).
 
 
