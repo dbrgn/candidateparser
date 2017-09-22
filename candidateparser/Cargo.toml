@@ -5,18 +5,19 @@ version = "0.1.0"
 repository = "https://github.com/dbrgn/candidateparser"
 license = "MIT OR Apache-2.0"
 authors = ["Danilo Bargen <mail@dbrgn.ch>"]
-keywords = ["ice", "nat", "parser", "candidates", "webrtc", "stun", "turn"]
+keywords = ["ice", "nat", "parser", "candidates", "webrtc"]
 categories = ["parser-implementations", "network-programming"]
 include = [
     "**/*.rs",
     "Cargo.toml",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE-*",
 ]
 
 [dependencies]
 nom = { version = "3.2" }
-clippy = {version = "*", optional = true}
+clippy = {version = "0.0.162", optional = true}
 
 [features]
 default = []

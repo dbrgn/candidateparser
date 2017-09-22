@@ -1,6 +1,9 @@
 # candidateparser
 
 [![CircleCI](https://circleci.com/gh/dbrgn/candidateparser/tree/master.svg?style=shield)](https://circleci.com/gh/dbrgn/candidateparser/tree/master)
+[![Crates.io Version][crates-io-badge]][crates-io]
+[![Crates.io Downloads][crates-io-download-badge]][crates-io-download]
+[![Rust][rust-badge]][github]
 
 This is a parser for the [ICE](https://tools.ietf.org/html/rfc5245) Candidate
 SDP, which is used for connectivity establishment and NAT traversal in
@@ -68,3 +71,11 @@ Licensed under either of
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall
 be dual licensed as above, without any additional terms or conditions.
+
+
+[crates-io]: https://crates.io/crates/candidateparser
+[crates-io-badge]: https://img.shields.io/crates/v/candidateparser.svg?maxAge=3600
+[crates-io-download]: https://crates.io/crates/candidateparser
+[crates-io-download-badge]: https://img.shields.io/crates/d/candidateparser.svg?maxAge=3600
+[github]: https://github.com/dbrgn/candidateparser
+[rust-badge]: https://img.shields.io/badge/rust-1.21%2B-blue.svg?maxAge=3600
