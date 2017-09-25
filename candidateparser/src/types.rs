@@ -1,6 +1,7 @@
 use std::convert::Into;
 use std::collections::HashMap;
 use std::ffi::CString;
+use std::fmt;
 use std::net::IpAddr;
 
 /// The ICE candidate struct. Contains all data from the SDP.
@@ -23,6 +24,15 @@ pub struct IceCandidate {
 pub enum Transport {
     Udp,
     Extension(String)
+}
+
+impl fmt::Display for Transport {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Transport::Udp => write!(f, "udp"),
+            &Transport::Extension(ref e) => write!(f, "{}", e),
+        }
+    }
 }
 
 impl Into<CString> for Transport {
@@ -52,6 +62,18 @@ impl Into<CString> for CandidateType {
             CandidateType::Prflx => CString::new("prflx").unwrap(),
             CandidateType::Relay => CString::new("relay").unwrap(),
             CandidateType::Token(e) => CString::new(e).unwrap(),
+        }
+    }
+}
+
+impl fmt::Display for CandidateType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &CandidateType::Host => write!(f, "host"),
+            &CandidateType::Srflx => write!(f, "srflx"),
+            &CandidateType::Prflx => write!(f, "prflx"),
+            &CandidateType::Relay => write!(f, "relay"),
+            &CandidateType::Token(ref e) => write!(f, "{}", e),
         }
     }
 }
