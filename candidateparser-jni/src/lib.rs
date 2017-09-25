@@ -2,7 +2,7 @@
 //!
 //! This library is meant to be used in combination with the
 //! `candidateparser-android` library.
-extern crate android_logger;
+#[cfg(target_os = "android")] extern crate android_logger;
 extern crate candidateparser;
 extern crate jni;
 #[macro_use] extern crate log;
@@ -14,7 +14,6 @@ use jni::JNIEnv;
 use jni::errors::{Result as JniResult};
 use jni::objects::{JClass, JString, JValue};
 use jni::sys::{jobject, _jobject, jlong, jint};
-use log::LogLevel;
 
 /// Unwrap the object. If unwrapping fails, print the error message to the
 /// Android logcat before panicking.
@@ -60,7 +59,8 @@ fn Java_ch_dbrgn_candidateparser_CandidateParser_parseSdp(env: JNIEnv,
                                                           _class: JClass,
                                                           input: JString)
                                                           -> jobject {
-    android_logger::init_once(LogLevel::Info);
+    #[cfg(target_os = "android")]
+    android_logger::init_once(log::LogLevel::Info);
 
     // Convert parameter Java string to Rust string
     let sdp: String = jni_unwrap!(env.get_string(input),
