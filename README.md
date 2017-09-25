@@ -47,6 +47,30 @@ This library includes C bindings, so you can use it from any language that
 supports the C calling convention. An example program can be found in
 `candidateparser-ffi/example.c`.
 
+### Building for Android
+
+Requirements:
+
+- Android NDK
+- Rustup
+- Make
+
+Add rustup targets:
+
+    $ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android
+
+Build standalone toolchains:
+
+    $ ./create-ndk-standalone.sh
+
+Add toolchain config to your `~/.cargo/config`:
+
+    $ cat cargo-config.toml >> ~/.cargo/config
+
+Build Android libraries:
+
+    $ make android
+
 
 ## Linting
 
