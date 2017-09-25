@@ -7,7 +7,8 @@
 
 This is a parser for the [ICE](https://tools.ietf.org/html/rfc5245) Candidate
 SDP, which is used for connectivity establishment and NAT traversal in
-communication systems like [WebRTC](https://webrtc.org/).
+communication systems like [WebRTC](https://webrtc.org/). Bindings for C and
+Android (through JNI) are provided.
 
 Example candidate SDP:
 
@@ -41,13 +42,22 @@ Crate docs: https://docs.rs/candidateparser/
 Note: Due to build system issues, Rust 1.21+ is required (currently in Beta).
 
 
-## FFI
+## FFI (C)
 
 This library includes C bindings, so you can use it from any language that
 supports the C calling convention. An example program can be found in
 `candidateparser-ffi/example.c`.
 
-### Building for Android
+
+## JNI bindings (Java / Android)
+
+This library also contains JNI bindings, written with
+[jni-rs](https://github.com/prevoty/jni-rs). An Android library with a simple
+test is provided in the `candidateparser-android` directory.
+
+Make sure to build the `candidateparser-jni` crate before building the Android library.
+
+### Building `candidateparser-jni` for Android
 
 Requirements:
 
@@ -70,6 +80,14 @@ Add toolchain config to your `~/.cargo/config`:
 Build Android libraries:
 
     $ make android
+
+### Building the `candidateparser-android` library for Android
+
+Build the library using gradle:
+
+    $ ./gradlew build
+
+You will find the AAR file in the `app/build/outputs/aar/` directory.
 
 
 ## Linting
