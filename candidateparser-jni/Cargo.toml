@@ -1,6 +1,6 @@
 [package]
 name = "candidateparser-jni"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Danilo Bargen <mail@dbrgn.ch>"]
 
 [lib]
@@ -8,7 +8,7 @@ name = "candidateparser_jni"
 crate-type = ["cdylib"]
 
 [dependencies]
-candidateparser = "0.1.1"
+candidateparser = "0.2"
 jni = "0.5.3"
 log = "0.3.0"
 android_logger = "0.3.0"

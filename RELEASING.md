@@ -13,6 +13,7 @@ Update version numbers:
 Run tests:
 
     $ cargo test
+    $ cargo build --features clippy
 
 Update changelog:
 
