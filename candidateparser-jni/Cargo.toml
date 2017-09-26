@@ -9,6 +9,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candidateparser = "0.2"
-jni = "0.5.3"
+jni = "0.6.1"
 log = "0.3.0"
 android_logger = "0.3.0"
