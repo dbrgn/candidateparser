@@ -10,7 +10,7 @@ build = "build.rs"
 
 [lib]
 name = "candidateparser_ffi"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 candidateparser = "*"

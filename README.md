@@ -8,7 +8,8 @@
 This is a parser for the [ICE](https://tools.ietf.org/html/rfc5245) Candidate
 SDP, which is used for connectivity establishment and NAT traversal in
 communication systems like [WebRTC](https://webrtc.org/). Bindings for C and
-Android (through JNI) are provided.
+Android (through JNI) are provided. Building a universal library for iOS is
+also possible.
 
 Example candidate SDP:
 
@@ -98,6 +99,22 @@ To run clippy lints, compile the library with `--features clippy` on a nightly c
 
 Note: Running this command from the workspace root won't work, you have to `cd`
 into the sub-crates!
+
+
+## Universal iOS library
+
+If you want to build a universal iOS library, install
+[cargo-lipo](https://github.com/TimNN/cargo-lipo). Then, delete the
+`Cargo.toml` file in the root (cargo-lipo cannot deal with workspaces
+currently).
+
+    $ rm Cargo.toml
+
+Finally, build the library:
+
+    $ make ios
+
+Note that this only works on macOS at the moment.
 
 
 ## License
