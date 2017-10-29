@@ -152,7 +152,8 @@ pub unsafe extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const I
 #[no_mangle]
 pub unsafe extern "C" fn free_ice_candidate(ptr: *const IceCandidateFFI) {
     if ptr.is_null() { return; }
-    let candidate: Box<IceCandidateFFI> = Box::from_raw(ptr as *mut IceCandidateFFI);
+    let ptr = ptr as *mut IceCandidateFFI;
+    let candidate: Box<IceCandidateFFI> = Box::from_raw(ptr);
     CString::from_raw(candidate.foundation as *mut c_char);
     CString::from_raw(candidate.transport as *mut c_char);
     CString::from_raw(candidate.connection_address as *mut c_char);
