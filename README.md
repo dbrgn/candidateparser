@@ -40,14 +40,14 @@ For more information, see [RFC5245 (Interactive Connectivity Establishment (ICE)
 
 Crate docs: https://docs.rs/candidateparser/
 
-Note: Due to build system issues, Rust 1.21+ is required (currently in Beta).
+Note: Due to build system issues, Rust 1.21+ is required.
 
 
-## FFI (C)
+## FFI (C/C++17)
 
-This library includes C bindings, so you can use it from any language that
-supports the C calling convention. An example program can be found in
-`candidateparser-ffi/example.c`.
+This library includes C and C++17 bindings, so you can use it from any language
+that supports the C calling convention. Example programs in C and C++17 can be
+found in the `candidateparser-ffi/examples/` directory.
 
 
 ## JNI bindings (Java / Android)
