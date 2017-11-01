@@ -17,7 +17,7 @@ jobs:
       - run: cargo build && cargo test
 
       # Ensure that example compiles
-      - run: cd candidateparser-ffi && cc example.c -o example -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
+      - run: make BUILDTYPE=debug examples/ffi
 
       # Run cargo-audit
       # TODO: Re-enable once we switch back to official rust image
