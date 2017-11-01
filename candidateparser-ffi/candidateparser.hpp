@@ -181,12 +181,12 @@ namespace dbrgn
             << "\tconnection_address : " << candidate.connection_address << '\n'
             << "\tport               : " << candidate.port << '\n'
             << "\ttype               : " << candidate.type << '\n'
-            << "\trel_address        : " << (candidate.rel_address.has_value() ? candidate.rel_address.value() : "") << '\n'
-            << "\trel_port           : " << (candidate.rel_port.has_value() ? candidate.rel_port.value() : '\0') << '\n'
+            << "\trel_address        : " << (candidate.rel_address ? candidate.rel_address.value() : "") << '\n'
+            << "\trel_port           : " << (candidate.rel_port ? candidate.rel_port.value() : '\0') << '\n'
             ;
 
         out << "\textensions         : ";
-        if(candidate.extensions.has_value())
+        if(candidate.extensions)
           {
           out << "{\n";
           auto && extensions = candidate.extensions.value();
