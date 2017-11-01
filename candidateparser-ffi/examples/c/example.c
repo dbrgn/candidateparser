@@ -5,6 +5,10 @@
  *
  *   $ clang example.c -o example -L ../target/debug -l candidateparser_ffi -Wall -Wextra -g
  *
+ * Or use:
+ *
+ *   $ make examples/ffi/c
+ *
  * Run like this:
  *
  *   $ LD_LIBRARY_PATH=../target/debug/ ./example

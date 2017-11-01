@@ -7,6 +7,10 @@ all:
 	@echo " - android-x86"
 	@echo " - ios"
 	@echo " - ios-universal"
+	@echo " - examples"
+	@echo " - examples/ffi"
+	@echo " - examples/ffi/c"
+	@echo " - examples/ffi/cpp"
 	@echo ""
 	@echo "Type 'make <target>' to build."
 
@@ -29,7 +33,18 @@ android: android-armv7 android-aarch64 android-x86
 
 ios: ios-universal
 
-clean:
-	rm -r target/armv7-linux-androideabi target/aarch64-linux-android target/i686-linux-android
+examples: examples/ffi
 
-.PHONY: clean all android ios
+examples/ffi:
+	$(MAKE) -C candidateparser-ffi/examples
+
+examples/ffi/clean:
+	$(MAKE) -C candidateparser-ffi/examples clean
+
+examples/ffi/%:
+	$(MAKE) -C candidateparser-ffi/examples $@
+
+clean: examples/ffi/clean
+	rm -rf target/armv7-linux-androideabi target/aarch64-linux-android target/i686-linux-android
+
+.PHONY: clean all android ios examples
