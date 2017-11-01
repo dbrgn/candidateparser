@@ -11,18 +11,44 @@
 #ifndef CANDIDATEPARSER_HPP
 #define CANDIDATEPARSER_HPP
 
-#if __cplusplus < 201703L
-#error "Requires C++17 or above"
-#endif
-
 #include <cctype>
 #include <cstdint>
 #include <map>
 #include <memory>
+
+#ifdef __has_include
+#if __has_include(<optional>)
 #include <optional>
+#ifndef __cpp_lib_optional
+#define __cpp_lib_optional 201606
+#endif
+#elif __has_include(<experimental/optional>)
+#include <experimental/optional>
+#endif
+#endif
+
+#if !(defined(__cpp_lib_optional) && __cpp_lib_optional >= 201606) && !(defined(__cpp_lib_experimental_optional) && __cpp_lib_experimental_optional >= 201411)
+#error "Requires STL with support for std::optional or std::experimental::optional"
+#endif
+
 #include <ostream>
 #include <string>
+
+#ifdef __has_include
+#if __has_include(<string_view>)
 #include <string_view>
+#ifndef __cpp_lib_string_view
+#define __cpp_lib_string_view 201606
+#endif
+#elif __has_include(<experimental/string_view>)
+#include <experimental/string_view>
+#endif
+#endif
+
+#if !(defined(__cpp_lib_string_view) && __cpp_lib_string_view >= 201606) && !(defined(__cpp_lib_experimental_string_view) && __cpp_lib_experimental_string_view >= 201411)
+#error "Requires STL with support for std::string_view or std::experimental::string_view"
+#endif
+
 #include <utility>
 
 extern "C" {
@@ -31,6 +57,20 @@ extern "C" {
 
 namespace dbrgn
   {
+
+#if defined(__cpp_lib_optional)
+  using std::optional;
+#else
+  using std::experimental::optional;
+#endif
+
+#if defined(__cpp_lib_string_view)
+  using std::string_view;
+  using std::basic_string_view;
+#else
+  using std::experimental::string_view;
+  using std::experimental::basic_string_view;
+#endif
 
   namespace internal
     {
@@ -42,7 +82,7 @@ namespace dbrgn
         ++length;
         }
 
-      return std::string_view{string, length};
+      return string_view{string, length};
       }
 
     template<typename Map, typename Key = typename Map::key_type, typename Value = typename Map::mapped_type>
@@ -78,7 +118,7 @@ namespace dbrgn
 
   constexpr struct Transport
     {
-    std::string_view const value;
+    string_view const value;
 
     friend std::ostream & operator<<(std::ostream & out, Transport const & tranport)
       {
@@ -91,7 +131,7 @@ namespace dbrgn
 
   constexpr struct CandidateType
     {
-    std::string_view const value;
+    string_view const value;
 
     friend std::ostream & operator<<(std::ostream & out, CandidateType const & type)
       {
@@ -168,16 +208,16 @@ namespace dbrgn
         return out;
         }
 
-      std::string_view const foundation;
+      string_view const foundation;
       std::uint32_t const component_id;
       Transport const transport;
       std::uint64_t const priority;
-      std::string_view const connection_address;
+      string_view const connection_address;
       std::uint16_t const port;
       CandidateType const type;
-      std::optional<std::string_view> const rel_address;
-      std::optional<std::uint16_t> const rel_port;
-      std::optional<std::map<std::basic_string_view<std::uint8_t>, std::basic_string_view<std::uint8_t>>> const extensions;
+      optional<string_view> const rel_address;
+      optional<std::uint16_t> const rel_port;
+      optional<std::map<basic_string_view<std::uint8_t>, basic_string_view<std::uint8_t>>> const extensions;
     };
 
   }
