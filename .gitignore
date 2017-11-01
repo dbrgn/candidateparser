@@ -4,3 +4,7 @@ Cargo.lock
 cargo-config.toml
 NDK/
 *.swp
+.cobjs
+.cppobjs
+*.class
+candidateparser-ffi/examples/bin/
