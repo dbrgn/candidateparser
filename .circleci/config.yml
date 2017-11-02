@@ -16,9 +16,12 @@ jobs:
       # Run tests
       - run: cargo build && cargo test
 
-      # Ensure that C example compiles
-      # (Exclude C++ for now since Debian Stretch doesn't have a C++17 compiler)
-      - run: make BUILDTYPE=debug examples/ffi/c
+      # Ensure that the C and C++ examples compile
+      - run:
+          command: |
+            make BUILDTYPE=debug examples/ffi
+            ./candidateparser-ffi/examples/bin/c_example
+            ./candidateparser-ffi/examples/bin/cpp_example
 
       # Run cargo-audit
       - run: cargo install --force cargo-audit && cargo audit
