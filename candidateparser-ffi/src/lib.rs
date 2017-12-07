@@ -14,7 +14,6 @@ extern crate libc;
 use libc::{c_char, size_t, uint8_t};
 use std::boxed::Box;
 use std::ffi::{CStr, CString};
-use std::mem;
 use std::ptr;
 
 /// A key value pair.
@@ -86,36 +85,26 @@ pub unsafe extern "C" fn parse_ice_candidate_sdp(sdp: *const c_char) -> *const I
     let extensions = match parsed.extensions {
         Some(e) => {
             // Create KeyValuePairs from map entries
-            let mut extensions_vec = e.iter().map(|(k, v)| {
-                let mut k_vec = k.clone();
-                k_vec.shrink_to_fit();
-                assert_eq!(k_vec.len(), k_vec.capacity());
-                let mut v_vec = v.clone();
-                v_vec.shrink_to_fit();
-                assert_eq!(v_vec.len(), v_vec.capacity());
+            let extensions_vec = e.iter().map(|(k, v)| {
+                let k_vec = k.clone();
+                let k_len = k_vec.len();
+                let v_vec = v.clone();
+                let v_len = v_vec.len();
                 let pair = KeyValuePair {
-                    key: k_vec.as_ptr(),
-                    key_len: k_vec.len(),
-                    val: v_vec.as_ptr(),
-                    val_len: v_vec.len(),
+                    key: Box::into_raw(k_vec.into_boxed_slice()) as *const u8,
+                    key_len: k_len,
+                    val: Box::into_raw(v_vec.into_boxed_slice()) as *const u8,
+                    val_len: v_len,
                 };
-                mem::forget(k_vec);
-                mem::forget(v_vec);
                 pair
             }).collect::<Vec<KeyValuePair>>();
-
-            // Shrink vector so that capacity == length
-            extensions_vec.shrink_to_fit();
-            assert_eq!(extensions_vec.len(), extensions_vec.capacity());
+            let extensions_len = extensions_vec.len();
 
             // Create KeyValueMap
             let map = KeyValueMap {
-                values: extensions_vec.as_ptr(),
-                len: extensions_vec.len(),
+                values: Box::into_raw(extensions_vec.into_boxed_slice()) as *const KeyValuePair,
+                len: extensions_len,
             };
-
-            // Prevent temporary vector from being deallocated
-            mem::forget(extensions_vec);
 
             map
         },
